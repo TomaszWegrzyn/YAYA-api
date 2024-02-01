@@ -17,7 +17,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 
 
@@ -43,6 +43,7 @@ app.MapPut("/putEvent/{stream}", async (CancellationToken cancellationToken, Tes
         await client.AppendToStreamAsync(
             stream,
             StreamState.Any,
+            324
             new[] { eventData },
             cancellationToken: cancellationToken
         );
