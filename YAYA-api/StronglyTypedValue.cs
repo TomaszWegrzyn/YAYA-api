@@ -38,4 +38,9 @@ public class StronglyTypedValue<T>: IEquatable<StronglyTypedValue<T>> where T: I
     {
         return !Equals(left, right);
     }
+
+    public override string? ToString()
+    {
+        return Value.ToString();
+    }
 }

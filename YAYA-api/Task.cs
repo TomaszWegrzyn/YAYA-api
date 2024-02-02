@@ -55,6 +55,17 @@ public class TaskPriorityDecreasedEvent
     }
 }
 
+public class CreateTaskCommand
+{
+    public TaskPriority TaskPriority { get; }
+
+    public CreateTaskCommand(TaskPriority taskPriority)
+    {
+        TaskPriority = taskPriority;
+    }
+}
+
+
 public class Task : Aggregate<TaskId>
 {
     private TaskPriority _taskPriority;

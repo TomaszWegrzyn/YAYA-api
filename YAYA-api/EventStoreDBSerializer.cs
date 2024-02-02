@@ -33,7 +33,7 @@ public static class EventStoreDBSerializer
     public static EventData ToJsonEventData(this object @event, object? metadata = null) =>
         new(
             Uuid.NewUuid(),
-            @event.GetType().Name,
+            @event.GetType().FullName,
             Encoding.UTF8.GetBytes(JsonSerializer.Serialize(@event)),
             Encoding.UTF8.GetBytes(JsonSerializer.Serialize(metadata ?? new { }))
         );

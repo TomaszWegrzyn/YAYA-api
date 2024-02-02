@@ -5,16 +5,16 @@ namespace YAYA_api;
 
 public static class AggregateStreamExtensions
 {
-    public static async Task<T?> AggregateStream<T>(
+    public static async Task<T?> AggregateStream<T, TId>(
         this EventStoreClient eventStore,
-        Guid id,
+        TId id,
         CancellationToken cancellationToken,
         ulong? fromVersion = null
-    ) where T : class, IProjection
+    ) where T : class, IProjection where TId : notnull
     {
         var readResult = eventStore.ReadStreamAsync(
             Direction.Forwards,
-            $"{nameof(T)}_{id}", // something like streamNameMapper would be better in the future
+            $"{typeof(T).Name}_{id}", // something like streamNameMapper would be better in the future
             fromVersion ?? StreamPosition.Start,
             cancellationToken: cancellationToken
         );
@@ -22,7 +22,8 @@ public static class AggregateStreamExtensions
         if (await readResult.ReadState.ConfigureAwait(false) == ReadState.StreamNotFound)
             return null;
 
-        var aggregate = (T)Activator.CreateInstance(typeof(T), await readResult.FirstAsync(cancellationToken: cancellationToken))!;
+        var firstEvent = (await readResult.FirstAsync(cancellationToken: cancellationToken)).Deserialize();
+        var aggregate = (T)Activator.CreateInstance(typeof(T), firstEvent)!;
 
         await foreach (var @event in readResult.Skip(1).WithCancellation(cancellationToken))
         {
