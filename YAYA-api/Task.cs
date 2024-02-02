@@ -45,8 +45,17 @@ public class TaskPriorityIncreasedEvent
     }
 }
 
+public class TaskPriorityDecreasedEvent
+{
+    public TaskId TaskId { get; }
 
-public class Task : Aggregate<TaskId, TaskCreatedEvent>
+    public TaskPriorityDecreasedEvent(TaskId taskId)
+    {
+        TaskId = taskId;
+    }
+}
+
+public class Task : Aggregate<TaskId>
 {
     private TaskPriority _taskPriority;
     private TaskStatus _taskStatus;
@@ -72,6 +81,35 @@ public class Task : Aggregate<TaskId, TaskCreatedEvent>
 
     public void IncreasePriority()
     {
+        var taskPriorityIncreasedEvent = new TaskPriorityIncreasedEvent(Id);
+        Apply(taskPriorityIncreasedEvent);
+        Enqueue(taskPriorityIncreasedEvent);
+    }
+
+    public void DecreasePriority()
+    {
+        var taskPriorityDecreasedEvent = new TaskPriorityDecreasedEvent(Id);
+        Apply(taskPriorityDecreasedEvent);
+        Enqueue(taskPriorityDecreasedEvent);
+    }
+
+    public override void When(object @event)
+    {
+        switch (@event)
+        {
+            case TaskPriorityIncreasedEvent taskPriorityIncreased:
+                Apply(taskPriorityIncreased);
+                break;
+            case TaskPriorityDecreasedEvent taskPriorityDecreased:
+                Apply(taskPriorityDecreased);
+                break;
+            default:
+                throw new InvalidOperationException($"Event type {@event.GetType().Name} can't be handled");
+        }
+    }
+
+    private void Apply(TaskPriorityIncreasedEvent taskPriorityIncreased)
+    {
         _taskPriority = _taskPriority switch
         {
             TaskPriority.Low => TaskPriority.Medium,
@@ -79,8 +117,18 @@ public class Task : Aggregate<TaskId, TaskCreatedEvent>
             TaskPriority.High => throw new InvalidOperationException("Task is already at highest priority"),
             _ => _taskPriority
         };
+    }
 
-        Enqueue(new TaskPriorityIncreasedEvent(Id));
+
+    private void Apply(TaskPriorityDecreasedEvent taskPriorityDecreased)
+    {
+        _taskPriority = _taskPriority switch
+        {
+            TaskPriority.High => TaskPriority.Medium,
+            TaskPriority.Medium => TaskPriority.Low,
+            TaskPriority.Low => throw new InvalidOperationException("Task is already at lowest priority"),
+            _ => _taskPriority
+        };
     }
 }
 

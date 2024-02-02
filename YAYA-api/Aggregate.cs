@@ -1,6 +1,6 @@
 ﻿namespace YAYA_api;
 
-public interface IAggregate<out T, in TCreationEvent>
+public interface IAggregate<out T>
 {
     T Id { get; }
     ulong Version { get; }
@@ -8,7 +8,7 @@ public interface IAggregate<out T, in TCreationEvent>
     object[] DequeueUncommittedEvents();
 }
 
-public abstract class Aggregate<T, TCreationEvent>: IAggregate<T, TCreationEvent> where T : notnull
+public abstract class Aggregate<T>: IAggregate<T> where T : notnull
 {
     public T Id { get; protected set; }
 
