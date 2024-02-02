@@ -17,7 +17,7 @@ public class EventStore<T, TId>: IEventStore<T, TId>where T : Aggregate<TId> whe
     private readonly EventStoreClient eventStore;
 
     public EventStore(
-        EventStoreClient eventStore,
+        EventStoreClient eventStore
     )
     {
         this.eventStore = eventStore;
@@ -27,12 +27,12 @@ public class EventStore<T, TId>: IEventStore<T, TId>where T : Aggregate<TId> whe
         eventStore.AggregateStream<T>(
             id,
             cancellationToken
-        );
+        ); // use it now - TODO
 
     public async Task<ulong> Add(T aggregate, CancellationToken ct = default)
     {
         var result = await eventStore.AppendToStreamAsync(
-            StreamNameMapper.ToStreamId<T>(aggregate.Id),
+            StreamNameMapper.ToStreamId<T>(aggregate.Id), 
             StreamState.NoStream,
             GetEventsToStore(aggregate),
             cancellationToken: ct

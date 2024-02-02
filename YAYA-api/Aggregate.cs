@@ -1,6 +1,6 @@
 ﻿namespace YAYA_api;
 
-public interface IAggregate<out T>
+public interface IAggregate<out T> : IProjection
 {
     T Id { get; }
     ulong Version { get; }
