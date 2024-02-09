@@ -3,8 +3,12 @@
     "Docker Compose": {
       "commandName": "DockerCompose",
       "commandVersion": "1.0",
+      "composeLaunchAction": "LaunchBrowser",
+      "composeLaunchServiceName": "yaya-api",
+      "composeLaunchUrl": "{Scheme}://localhost:{ServicePort}/swagger/index.html",
       "serviceActions": {
-        "yaya-api": "StartDebugging"
+        "yaya-api": "StartDebugging",
+        "eventstore.db": "StartWithoutDebugging"
       }
     }
   }

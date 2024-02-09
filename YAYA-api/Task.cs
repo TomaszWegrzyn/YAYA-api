@@ -65,6 +65,25 @@ public class CreateTaskCommand
     }
 }
 
+public class IncreaseTaskPriorityCommand
+{
+    public Guid TaskId { get; }
+
+    public IncreaseTaskPriorityCommand(Guid taskId)
+    {
+        TaskId = taskId;
+    }
+}
+
+public class DesreaseTaskPriorityCommand
+{
+    public Guid TaskId { get; }
+
+    public DesreaseTaskPriorityCommand(Guid taskId)
+    {
+        TaskId = taskId;
+    }
+}
 
 public class Task : Aggregate<TaskId>
 {

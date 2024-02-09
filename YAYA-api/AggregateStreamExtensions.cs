@@ -18,20 +18,31 @@ public static class AggregateStreamExtensions
             fromVersion ?? StreamPosition.Start,
             cancellationToken: cancellationToken
         );
-
         if (await readResult.ReadState.ConfigureAwait(false) == ReadState.StreamNotFound)
             return null;
-
-        var firstEvent = (await readResult.FirstAsync(cancellationToken: cancellationToken)).Deserialize();
+        var events = readResult.ToEnumerable().ToList(); // WTF, this never returns
+        
+        var firstEvent = (events.First()).Deserialize();
         var aggregate = (T)Activator.CreateInstance(typeof(T), firstEvent)!;
-
-        await foreach (var @event in readResult.Skip(1).WithCancellation(cancellationToken))
+        
+        foreach (var @event in events.Skip(1))
         {
             var eventData = @event.Deserialize();
-
+        
             aggregate.When(eventData!);
         }
-
+        
         return aggregate;
+
+        // if (await readResult.ReadState.ConfigureAwait(false) == ReadState.StreamNotFound)
+        //     return null;
+        //
+        // await foreach (var @event in readResult)
+        // {
+        //     var eventData = @event.Deserialize();
+        //
+        //     aggregate.When(eventData!);
+        // }
+
     }
 }

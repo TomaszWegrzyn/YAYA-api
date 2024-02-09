@@ -6,7 +6,7 @@
     <DockerPublishLocally>False</DockerPublishLocally>
     <ProjectGuid>80923fc0-100c-4a8d-9663-3bc53dd667fd</ProjectGuid>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
-    <DockerServiceUrl>http://localhost:55169/swagger/index.html</DockerServiceUrl>
+	  <DockerServiceUrl>{Scheme}://{ServiceHost}:{ServicePort}</DockerServiceUrl>
     <DockerServiceName>yaya-api</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>
