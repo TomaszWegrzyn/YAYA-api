@@ -1,6 +1,8 @@
 using EventStore.Client;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http.Json;
 using YAYA_api;
 using Task = YAYA_api.Task;
 
@@ -11,6 +13,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.Configure<JsonOptions>(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 
 const string connectionString = "esdb://eventstore.db:2113?tls=false&keepAliveTimeout=10000&keepAliveInterval=10000";
 builder.Services.AddSingleton(
@@ -28,48 +35,6 @@ if (app.Environment.IsDevelopment())
 // app.UseHttpsRedirection();
 
 
-
-app.MapGet("/hello", () => "hello")
-    .WithName("hello")
-    .WithOpenApi();
-
-
-app.MapPost(
-        "/CreateTask/", 
-        async (CreateTaskCommand command, IEventStore<Task, TaskId> eventStore) =>
-    {
-        await eventStore.Add(Task.Create(new TaskId(Guid.NewGuid()), DateTime.Now, command.TaskPriority));
-    })
-    .WithName("CreateTask")
-    .WithOpenApi();
-
-app.MapGet(
-        "/GetTasks/{id}",
-        async (Guid id, IEventStore<Task, TaskId> eventStore, CancellationToken cancellationToken) => await eventStore.Find(new TaskId(id), cancellationToken))
-    .WithName("GetTask")
-    .WithOpenApi();
-
-app.MapPost(
-        "/IncreasePriority/",
-        async (IncreaseTaskPriorityCommand command, IEventStore<Task, TaskId> eventStore, CancellationToken cancellationToken) =>
-        {
-            var task = await eventStore.Find(new TaskId(command.TaskId), cancellationToken);
-            task.IncreasePriority();
-            await eventStore.Update(task, ct: cancellationToken);
-        })
-    .WithName("IncreasePriority")
-    .WithOpenApi();
-
-app.MapPost(
-        "/DecreasePriority/",
-        async (DecreaseTaskPriorityCommand command, IEventStore<Task, TaskId> eventStore, CancellationToken cancellationToken) =>
-        {
-            var task = await eventStore.Find(new TaskId(command.TaskId), cancellationToken);
-            task.DecreasePriority();
-            await eventStore.Update(task, ct: cancellationToken);
-        })
-    .WithName("DecreasePriority")
-    .WithOpenApi();
-
+app.AddTaskEndpoints();
 
 app.Run();

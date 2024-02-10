@@ -1,15 +1,18 @@
 ﻿using EventStore.Client;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace YAYA_api;
 
 public static class EventStoreDBSerializer
 {
+    private static JsonSerializerOptions jsonSerializerOptions;
 
     static EventStoreDBSerializer()
     {
-
+        jsonSerializerOptions = new JsonSerializerOptions();
+        jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     }
 
     public static T? Deserialize<T>(this ResolvedEvent resolvedEvent) where T : class =>
@@ -26,7 +29,8 @@ public static class EventStoreDBSerializer
         // deserialize event
         return JsonSerializer.Deserialize(
             Encoding.UTF8.GetString(resolvedEvent.Event.Data.Span),
-            eventType
+            eventType,
+            jsonSerializerOptions
         )!;
     }
     
@@ -34,8 +38,8 @@ public static class EventStoreDBSerializer
         new(
             Uuid.NewUuid(),
             @event.GetType().FullName,
-            Encoding.UTF8.GetBytes(JsonSerializer.Serialize(@event)),
-            Encoding.UTF8.GetBytes(JsonSerializer.Serialize(metadata ?? new { }))
+            Encoding.UTF8.GetBytes(JsonSerializer.Serialize(@event, jsonSerializerOptions)),
+            Encoding.UTF8.GetBytes(JsonSerializer.Serialize(metadata ?? new { }, jsonSerializerOptions))
         );
 
     // should be some util
