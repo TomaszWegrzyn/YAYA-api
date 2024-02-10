@@ -20,16 +20,23 @@ public static class AggregateStreamExtensions
         );
         if (await readResult.ReadState.ConfigureAwait(false) == ReadState.StreamNotFound)
             return null;
-        var events = readResult.ToEnumerable().ToList(); // WTF, this never returns
-        
-        var firstEvent = (events.First()).Deserialize();
-        var aggregate = (T)Activator.CreateInstance(typeof(T), firstEvent)!;
-        
-        foreach (var @event in events.Skip(1))
+         // WTF, this never returns
+         
+        var firstEventHandled = false;
+        T? aggregate = null;
+
+        await foreach (var @event in readResult)
         {
             var eventData = @event.Deserialize();
-        
-            aggregate.When(eventData!);
+            if (firstEventHandled)
+            {
+                aggregate.When(eventData!);
+            }
+            else
+            {
+                aggregate = (T)Activator.CreateInstance(typeof(T), eventData)!;
+                firstEventHandled = true;
+            }
         }
         
         return aggregate;

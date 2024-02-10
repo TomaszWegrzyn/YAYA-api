@@ -55,20 +55,18 @@ app.MapPost(
         {
             var task = await eventStore.Find(new TaskId(command.TaskId), cancellationToken);
             task.IncreasePriority();
-            await eventStore.Update(task, task.Version, cancellationToken);
+            await eventStore.Update(task, ct: cancellationToken);
         })
     .WithName("IncreasePriority")
     .WithOpenApi();
 
 app.MapPost(
         "/DecreasePriority/",
-        async (IncreaseTaskPriorityCommand command, IEventStore<Task, TaskId> eventStore, CancellationToken cancellationToken) =>
+        async (DecreaseTaskPriorityCommand command, IEventStore<Task, TaskId> eventStore, CancellationToken cancellationToken) =>
         {
             var task = await eventStore.Find(new TaskId(command.TaskId), cancellationToken);
             task.DecreasePriority();
-            await eventStore.Update(task, task.Version, cancellationToken);
-
-
+            await eventStore.Update(task, ct: cancellationToken);
         })
     .WithName("DecreasePriority")
     .WithOpenApi();

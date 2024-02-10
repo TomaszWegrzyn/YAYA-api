@@ -75,11 +75,11 @@ public class IncreaseTaskPriorityCommand
     }
 }
 
-public class DesreaseTaskPriorityCommand
+public class DecreaseTaskPriorityCommand
 {
     public Guid TaskId { get; }
 
-    public DesreaseTaskPriorityCommand(Guid taskId)
+    public DecreaseTaskPriorityCommand(Guid taskId)
     {
         TaskId = taskId;
     }
@@ -140,6 +140,7 @@ public class Task : Aggregate<TaskId>
 
     private void Apply(TaskPriorityIncreasedEvent taskPriorityIncreased)
     {
+        Version++;
         _taskPriority = _taskPriority switch
         {
             TaskPriority.Low => TaskPriority.Medium,
@@ -152,6 +153,7 @@ public class Task : Aggregate<TaskId>
 
     private void Apply(TaskPriorityDecreasedEvent taskPriorityDecreased)
     {
+        Version++;
         _taskPriority = _taskPriority switch
         {
             TaskPriority.High => TaskPriority.Medium,
