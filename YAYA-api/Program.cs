@@ -1,10 +1,9 @@
 using EventStore.Client;
-using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http.Json;
 using YAYA_api;
 using Task = YAYA_api.Task;
+using TaskStatus = YAYA_api.TaskStatus;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +21,10 @@ builder.Services.Configure<JsonOptions>(options =>
 const string connectionString = "esdb://eventstore.db:2113?tls=false&keepAliveTimeout=10000&keepAliveInterval=10000";
 builder.Services.AddSingleton(
     new EventStoreClient(EventStoreClientSettings.Create(connectionString)));
+
 builder.Services.AddScoped<IEventStore<Task, TaskId>, EventStore<Task, TaskId>>();
+builder.Services.AddScoped<IEventStore<TaskStatus, TaskStatusId>, EventStore<TaskStatus, TaskStatusId>>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -36,5 +38,6 @@ if (app.Environment.IsDevelopment())
 
 
 app.AddTaskEndpoints();
-
+app.AddTaskStatusEndpoints();
+await app.EnsureDefaultTaskStatusExistsAsync();
 app.Run();

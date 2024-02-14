@@ -8,13 +8,13 @@ public static class TaskApiExtensions
                 "/CreateTask/",
                 async (CreateTaskCommand command, IEventStore<Task, TaskId> eventStore) =>
                 {
-                    await eventStore.Add(Task.Create(new TaskId(Guid.NewGuid()), DateTime.Now, command.TaskPriority, command.Name));
+                    await eventStore.Add(Task.Create(new TaskId(Guid.NewGuid()), DateTime.Now, command.TaskPriority, command.TaskStatusId, command.Name));
                 })
             .WithName("CreateTask")
             .WithOpenApi();
 
         app.MapGet(
-                "/GetTasks/{id}",
+                "/Tasks/{id}",
                 async (Guid id, IEventStore<Task, TaskId> eventStore, CancellationToken cancellationToken) =>
                 {
                     var result = await eventStore.Find(new TaskId(id), cancellationToken);
@@ -47,6 +47,29 @@ public static class TaskApiExtensions
         return app;
 
     }
+
+    public static WebApplication AddTaskStatusEndpoints(this WebApplication app)
+    {
+        app.MapPost(
+                "/CreateTaskStatus/",
+                async (CreateTaskStatusCommand command, IEventStore<TaskStatus, TaskStatusId> eventStore) =>
+                {
+                    await eventStore.Add(TaskStatus.Create(new TaskStatusId(Guid.NewGuid()), DateTime.Now, command.Name));
+                })
+            .WithName("CreateTaskStatus")
+            .WithOpenApi();
+
+        app.MapGet(
+                "/TaskStatus/{id}",
+                async (Guid id, IEventStore<TaskStatus, TaskStatusId> eventStore, CancellationToken cancellationToken) =>
+                {
+                    var result = await eventStore.Find(new TaskStatusId(id), cancellationToken);
+                    return result;
+                })
+            .WithName("GetTaskStatus")
+            .WithOpenApi();
+        return app;
+    }
 }
 
 
@@ -55,10 +78,13 @@ public class CreateTaskCommand
     public TaskPriority TaskPriority { get; }
     public string Name { get; }
 
-    public CreateTaskCommand(TaskPriority taskPriority, string name)
+    public TaskStatusId TaskStatusId { get; }
+
+    public CreateTaskCommand(TaskPriority taskPriority, string name, TaskStatusId taskStatusId)
     {
         TaskPriority = taskPriority;
         Name = name;
+        TaskStatusId = taskStatusId;
     }
 }
 
@@ -80,4 +106,20 @@ public class DecreaseTaskPriorityCommand
     {
         TaskId = taskId;
     }
+}
+
+public class CreateTaskStatusCommand
+{
+    public TaskStatusId TaskStatusId { get; }
+    public DateTime CreatedAt { get; }
+    public string Name { get; }
+
+    public CreateTaskStatusCommand(TaskStatusId taskStatusId, DateTime createdAt, string name)
+    {
+        TaskStatusId = taskStatusId;
+        CreatedAt = createdAt;
+        Name = name;
+    }
+
+
 }

@@ -7,12 +7,6 @@ public class TaskId: StronglyTypedValue<Guid>
     }
 }
 
-public enum TaskStatus
-{
-    Open,
-    InProgress,
-    Done
-}
 
 public enum TaskPriority
 {
@@ -26,9 +20,8 @@ public enum TaskPriority
 public class Task : Aggregate<TaskId>
 {
     private TaskPriority _taskPriority;
-    private TaskStatus _taskStatus;
 
-    private Task(TaskId id, DateTime createdAt, TaskPriority taskPriority, string? name) : base(id)
+    private Task(TaskId id, DateTime createdAt, TaskPriority taskPriority, TaskStatusId status, string? name) : base(id)
     {
         if(!Enum.IsDefined(taskPriority))
         {
@@ -40,7 +33,7 @@ public class Task : Aggregate<TaskId>
     // we will call this using Activator.CreateInstance via reflection
     public Task(TaskCreatedEvent creationEvent) : 
         
-        this(creationEvent.TaskId, creationEvent.CreatedAt, PriorityFromInt(creationEvent.TaskPriority), creationEvent.Name)
+        this(creationEvent.TaskId, creationEvent.CreatedAt, PriorityFromInt(creationEvent.TaskPriority), TaskStatusId.Default, creationEvent.Name)
     {
 
     }
@@ -57,16 +50,16 @@ public class Task : Aggregate<TaskId>
     }
 
     public Task(TaskCreatedEventV2 creationEvent) :
-        this(creationEvent.TaskId, creationEvent.CreatedAt, creationEvent.TaskPriority, creationEvent.Name)
+        this(creationEvent.TaskId, creationEvent.CreatedAt, creationEvent.TaskPriority, creationEvent.TaskStatusId ?? TaskStatusId.Default, creationEvent.Name)
     {
 
     }
 
 
-    public static Task Create(TaskId id, DateTime createdAt, TaskPriority taskPriority, string name)
+    public static Task Create(TaskId id, DateTime createdAt, TaskPriority taskPriority, TaskStatusId taskStatusId, string name)
     {
-        var task = new Task(id, createdAt, taskPriority, name);
-        task.Enqueue(new TaskCreatedEventV2(id, createdAt, taskPriority, name));
+        var task = new Task(id, createdAt, taskPriority, taskStatusId, name);
+        task.Enqueue(new TaskCreatedEventV2(id, createdAt, taskPriority, taskStatusId, name));
         return task;
     }
 
@@ -182,14 +175,16 @@ public class TaskCreatedEvent
 
 public class TaskCreatedEventV2
 {
+    public TaskStatusId? TaskStatusId { get; }
     public TaskId TaskId { get; }
     public DateTime CreatedAt { get; }
     public TaskPriority TaskPriority { get; }
 
     public string? Name { get; }
 
-    public TaskCreatedEventV2(TaskId taskId, DateTime createdAt, TaskPriority taskPriority, string? name)
+    public TaskCreatedEventV2(TaskId taskId, DateTime createdAt, TaskPriority taskPriority, TaskStatusId? taskStatusId, string? name)
     {
+        TaskStatusId = taskStatusId;
         TaskId = taskId;
         CreatedAt = createdAt;
         TaskPriority = taskPriority;
