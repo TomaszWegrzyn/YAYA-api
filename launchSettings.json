@@ -8,7 +8,8 @@
       "composeLaunchUrl": "{Scheme}://localhost:{ServicePort}/swagger/index.html",
       "serviceActions": {
         "yaya-api": "StartDebugging",
-        "eventstore.db": "StartWithoutDebugging"
+        "eventstore.db": "StartWithoutDebugging",
+        "yaya-readside": "StartDebugging"
       }
     }
   }

@@ -1,0 +1,6 @@
+@YAYA_readside_HostAddress = http://localhost:5157
+
+GET {{YAYA_readside_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

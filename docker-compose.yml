@@ -28,6 +28,12 @@ services:
         source: eventstore-volume-logs
         target: /var/log/eventstore
 
+  yaya-readside:
+    image: ${DOCKER_REGISTRY-}yayareadside
+    build:
+      context: .
+      dockerfile: YAYA-readside/Dockerfile
+
 volumes:
   eventstore-volume-data:
   eventstore-volume-logs:
