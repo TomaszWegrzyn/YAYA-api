@@ -24,6 +24,7 @@ builder.Services.AddSingleton(
 
 builder.Services.AddScoped<IEventStore<Task, TaskId>, EventStore<Task, TaskId>>();
 builder.Services.AddScoped<IEventStore<TaskStatus, TaskStatusId>, EventStore<TaskStatus, TaskStatusId>>();
+builder.Services.AddScoped<IEventStore<TaskStatusNameLock, string>, EventStore<TaskStatusNameLock, string>>();
 
 var app = builder.Build();
 

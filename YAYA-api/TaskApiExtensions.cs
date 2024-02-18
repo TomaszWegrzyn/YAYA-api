@@ -50,11 +50,40 @@ public static class TaskApiExtensions
 
     public static WebApplication AddTaskStatusEndpoints(this WebApplication app)
     {
+        // this should be a saga
         app.MapPost(
                 "/CreateTaskStatus/",
-                async (CreateTaskStatusCommand command, IEventStore<TaskStatus, TaskStatusId> eventStore) =>
+                async (CreateTaskStatusCommand command, IEventStore<TaskStatus, TaskStatusId> taskStatusEventStore, IEventStore<TaskStatusNameLock, string> nameLockEventStore, CancellationToken cancellationToken) =>
                 {
-                    await eventStore.Add(TaskStatus.Create(new TaskStatusId(Guid.NewGuid()), DateTime.Now, command.Name));
+                    // here we can validate the command against the list of existing task status names
+                    var nameLock = await nameLockEventStore.Find(command.Name, cancellationToken);
+                    if (nameLock == null)
+                    {
+                        nameLock = TaskStatusNameLock.Create(command.Name);
+                        await nameLockEventStore.Add(nameLock, cancellationToken);
+                    }
+
+                    if (nameLock.Locked)
+                    {
+                        throw new InvalidOperationException("Task status name is locked");
+                    }
+
+                    nameLock.StartAcquire(DateTime.Now);
+                    var taskStatusId = new TaskStatusId(Guid.NewGuid());
+                    var taskStatus = TaskStatus.Create(taskStatusId, DateTime.Now, command.Name);
+                    await taskStatusEventStore.Add(taskStatus, cancellationToken);
+                    try
+                    {
+                        nameLock.FinishAcquire(DateTime.Now);
+                        await nameLockEventStore.Update(nameLock, ct: cancellationToken);
+
+                    }
+                    catch (Exception)
+                    {
+                        // if we fail to acquire the lock, we should remove the task status
+                        await taskStatusEventStore.Delete(taskStatus, ct: cancellationToken);
+                        throw;
+                    }
                 })
             .WithName("CreateTaskStatus")
             .WithOpenApi();
@@ -110,14 +139,10 @@ public class DecreaseTaskPriorityCommand
 
 public class CreateTaskStatusCommand
 {
-    public TaskStatusId TaskStatusId { get; }
-    public DateTime CreatedAt { get; }
     public string Name { get; }
 
-    public CreateTaskStatusCommand(TaskStatusId taskStatusId, DateTime createdAt, string name)
+    public CreateTaskStatusCommand(string name)
     {
-        TaskStatusId = taskStatusId;
-        CreatedAt = createdAt;
         Name = name;
     }
 

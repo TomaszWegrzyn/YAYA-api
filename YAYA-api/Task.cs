@@ -65,14 +65,14 @@ public class Task : Aggregate<TaskId>
 
     public void IncreasePriority()
     {
-        var taskPriorityIncreasedEvent = new TaskPriorityIncreasedEventV2(Id);
+        var taskPriorityIncreasedEvent = new TaskPriorityIncreasedEventV2();
         Apply(taskPriorityIncreasedEvent);
         Enqueue(taskPriorityIncreasedEvent);
     }
 
     public void DecreasePriority()
     {
-        var taskPriorityDecreasedEvent = new TaskPriorityDecreasedEventV2(Id);
+        var taskPriorityDecreasedEvent = new TaskPriorityDecreasedEventV2();
         Apply(taskPriorityDecreasedEvent);
         Enqueue(taskPriorityDecreasedEvent);
     }
@@ -204,31 +204,22 @@ public class TaskPriorityIncreasedEvent
 
 public class TaskPriorityIncreasedEventV2
 {
-    public TaskId TaskId { get; }
-
-    public TaskPriorityIncreasedEventV2(TaskId taskId)
+    public TaskPriorityIncreasedEventV2()
     {
-        TaskId = taskId;
     }
 }
 
 public class TaskPriorityDecreasedEvent
 {
-    public TaskId TaskId { get; }
-
-    public TaskPriorityDecreasedEvent(TaskId taskId)
+    public TaskPriorityDecreasedEvent()
     {
-        TaskId = taskId;
     }
 }
 
 public class TaskPriorityDecreasedEventV2
 {
-    public TaskId TaskId { get; }
-
-    public TaskPriorityDecreasedEventV2(TaskId taskId)
+    public TaskPriorityDecreasedEventV2()
     {
-        TaskId = taskId;
     }
 }
 
