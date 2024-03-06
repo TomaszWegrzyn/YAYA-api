@@ -20,8 +20,7 @@ public static class AggregateStreamExtensions
         );
         if (await readResult.ReadState.ConfigureAwait(false) == ReadState.StreamNotFound)
             return null;
-         // WTF, this never returns
-         
+
         var firstEventHandled = false;
         T? aggregate = null;
 
@@ -41,15 +40,34 @@ public static class AggregateStreamExtensions
         
         return aggregate;
 
-        // if (await readResult.ReadState.ConfigureAwait(false) == ReadState.StreamNotFound)
-        //     return null;
-        //
-        // await foreach (var @event in readResult)
-        // {
-        //     var eventData = @event.Deserialize();
-        //
-        //     aggregate.When(eventData!);
-        // }
+    }
 
+    public static async Task<T?> AggregateStreamForProjection<T>(
+        this EventStoreClient eventStore,
+        string stream,
+        CancellationToken cancellationToken,
+        ulong? fromVersion = null
+    ) where T : class, IProjection, new()
+    {
+        var readResult = eventStore.ReadStreamAsync(
+            Direction.Forwards,
+            stream,
+            fromVersion ?? StreamPosition.Start,
+            cancellationToken: cancellationToken,
+            resolveLinkTos: true
+        );
+        if (await readResult.ReadState.ConfigureAwait(false) == ReadState.StreamNotFound)
+            return null;
+
+        var projection = new T();
+
+        await foreach (var @event in readResult)
+        {
+            var eventData = @event.Deserialize();
+
+            projection.When(eventData!);
+        }
+
+        return projection;
     }
 }

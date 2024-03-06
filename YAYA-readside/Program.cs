@@ -1,5 +1,9 @@
+using System.Text;
 using System.Text.Json.Serialization;
+using EventStore.Client;
 using Microsoft.AspNetCore.Http.Json;
+using YAYA_api;
+using YAYA_readside;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +17,15 @@ builder.Services.Configure<JsonOptions>(options =>
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
+builder.Services.Configure<JsonOptions>(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+
+const string connectionString = "esdb://eventstore.db:2113?tls=false&keepAliveTimeout=10000&keepAliveInterval=10000";
+builder.Services.AddSingleton(
+    new EventStoreClient(EventStoreClientSettings.Create(connectionString)));
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -22,29 +35,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+app.MapGet(
+        "/RecentTasks",
+        async (EventStoreClient eventStoreClient, CancellationToken cancellationToken) =>
+        {
+            var projection = await eventStoreClient
+                .AggregateStreamForProjection<RecentTasksProjection>("$ce-Task", cancellationToken);
+            return projection;
+        })
+    .WithName("RecentTasks")
+    .WithOpenApi();
 
 app.Run();
-
-internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
