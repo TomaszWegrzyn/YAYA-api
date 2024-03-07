@@ -4,6 +4,7 @@ using EventStore.Client;
 using Microsoft.AspNetCore.Http.Json;
 using YAYA_api;
 using YAYA_readside;
+using MvcJsonOptions = Microsoft.AspNetCore.Mvc.JsonOptions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,15 +13,23 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.Configure<JsonOptions>(options =>
-{
-    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
-});
 
 builder.Services.Configure<JsonOptions>(options =>
 {
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    options.SerializerOptions.Converters.Add(new StronglyTypedValueJsonConverter<TaskId>());
+    options.SerializerOptions.Converters.Add(new StronglyTypedValueJsonConverter<TaskStatusId>());
 });
+
+// needed for swagger
+// boooo!
+builder.Services.Configure<MvcJsonOptions>(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    options.JsonSerializerOptions.Converters.Add(new StronglyTypedValueJsonConverter<TaskId>());
+    options.JsonSerializerOptions.Converters.Add(new StronglyTypedValueJsonConverter<TaskStatusId>());
+});
+
 
 const string connectionString = "esdb://eventstore.db:2113?tls=false&keepAliveTimeout=10000&keepAliveInterval=10000";
 builder.Services.AddSingleton(
@@ -45,5 +54,33 @@ app.MapGet(
         })
     .WithName("RecentTasks")
     .WithOpenApi();
+
+{
+
+    var serviceScopeFactory = app.Services.GetRequiredService<IServiceScopeFactory>();
+    using var scope = serviceScopeFactory.CreateScope();
+    var eventStoreClient = scope.ServiceProvider.GetRequiredService<EventStoreClient>();
+    try
+    {
+        await eventStoreClient.SubscribeToAllAsync(
+            FromAll.Start,
+            async (subscription, @event, cancellationToken) =>
+            {
+                Console.WriteLine(@event.Event.EventType);
+                Console.WriteLine(Encoding.UTF8.GetString(@event.Event.Data.Span));
+            },
+            cancellationToken: CancellationToken.None,
+            filterOptions: new SubscriptionFilterOptions(EventTypeFilter.ExcludeSystemEvents())
+        );
+
+    }
+    catch (Exception e)
+    {
+        // Assume it's already there, possibly to some concurrency collision
+        Console.WriteLine(e);
+    }
+
+
+}
 
 app.Run();

@@ -19,8 +19,8 @@ public class RecentTask
 
 public class RecentTasksProjection : IProjection
 {
-    private Stack<RecentTask> _recentTasks = new Stack<RecentTask>();
-    private static readonly int MaxTasksToShow = 10;
+    private readonly Stack<RecentTask> _recentTasks = new Stack<RecentTask>();
+    private const int MaxTasksToShow = 10;
 
     public IReadOnlyCollection<RecentTask> RecentTasks => _recentTasks;
 

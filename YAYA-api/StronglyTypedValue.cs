@@ -1,4 +1,7 @@
-﻿namespace YAYA_api;
+﻿using System.Text.Json.Serialization;
+using System.Text.Json;
+
+namespace YAYA_api;
 
 public class StronglyTypedValue<T>: IEquatable<StronglyTypedValue<T>> where T: IComparable<T>
 {
@@ -42,5 +45,23 @@ public class StronglyTypedValue<T>: IEquatable<StronglyTypedValue<T>> where T: I
     public override string? ToString()
     {
         return Value.ToString();
+    }
+}
+
+// This should be in a separate file, but I have no time to prepare this project... :(
+public class StronglyTypedValueJsonConverter<T> : JsonConverter<T> where T :StronglyTypedValue<Guid> 
+{
+    public override T? Read(ref Utf8JsonReader reader, Type typeToConvert,
+        JsonSerializerOptions options)
+    {
+        var value = reader.GetString();
+        if (value is null)
+            return null;
+        return (T)Activator.CreateInstance(typeToConvert, value)!;
+    }
+
+    public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
+    {
+        writer.WriteStringValue(value.Value);
     }
 }

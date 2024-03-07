@@ -4,8 +4,7 @@ using Microsoft.AspNetCore.Http.Json;
 using YAYA_api;
 using Task = YAYA_api.Task;
 using TaskStatus = YAYA_api.TaskStatus;
-using System.Text;
-using System.Text.Json;
+using MvcJsonOptions = Microsoft.AspNetCore.Mvc.JsonOptions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +17,17 @@ builder.Services.AddSwaggerGen();
 builder.Services.Configure<JsonOptions>(options =>
 {
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    options.SerializerOptions.Converters.Add(new StronglyTypedValueJsonConverter<TaskId>());
+    options.SerializerOptions.Converters.Add(new StronglyTypedValueJsonConverter<TaskStatusId>());
+});
+
+// needed for swagger
+// boooo!
+builder.Services.Configure<MvcJsonOptions>(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    options.JsonSerializerOptions.Converters.Add(new StronglyTypedValueJsonConverter<TaskId>());
+    options.JsonSerializerOptions.Converters.Add(new StronglyTypedValueJsonConverter<TaskStatusId>());
 });
 
 const string connectionString = "esdb://eventstore.db:2113?tls=false&keepAliveTimeout=10000&keepAliveInterval=10000";
@@ -43,32 +53,5 @@ if (app.Environment.IsDevelopment())
 app.AddTaskEndpoints();
 app.AddTaskStatusEndpoints();
 await app.EnsureDefaultTaskStatusExistsAsync();
-
-// app.MapGet(
-//         "/Projection-Test-OutDated/",
-//         async (EventStoreClient eventStoreClient, CancellationToken cancellationToken) =>
-//         {
-//             var readResult = eventStoreClient.ReadStreamAsync(
-//                 Direction.Forwards,
-//                 "$category-Task",
-//                 StreamPosition.Start,
-//                 cancellationToken: cancellationToken
-//             );
-//             if (await readResult.ReadState.ConfigureAwait(false) == ReadState.StreamNotFound)
-//                 return null;
-//
-//             var result = new List<object>();
-//             await foreach (var @event in readResult)
-//             {
-//                 result.Add(Encoding.UTF8.GetString(@event.Event.Data.ToArray()));
-//                 result.Add(Encoding.UTF8.GetString(@event.Event.Metadata.ToArray()));
-//                 result.Add(Encoding.UTF8.GetString(@event.OriginalEvent.Data.ToArray()));
-//                 result.Add(Encoding.UTF8.GetString(@event.OriginalEvent.Metadata.ToArray()));
-//             }
-//             return result;
-//         })
-//     .WithName("Projection")
-//     .WithOpenApi();
-
 
 app.Run();

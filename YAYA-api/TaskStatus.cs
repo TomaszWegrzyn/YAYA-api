@@ -58,7 +58,7 @@ public static class TaskStatusWebApplicationExtensions
     public static async Task<WebApplication> EnsureDefaultTaskStatusExistsAsync(this WebApplication app)
     {
         var serviceScopeFactory = app.Services.GetRequiredService<IServiceScopeFactory>();
-        using IServiceScope scope = serviceScopeFactory.CreateScope();
+        using var scope = serviceScopeFactory.CreateScope();
         var eventStore = scope.ServiceProvider.GetRequiredService<IEventStore<TaskStatus, TaskStatusId>>();
         try
         {

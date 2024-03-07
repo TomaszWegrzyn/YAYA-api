@@ -1,0 +1,2 @@
+https://github.com/oskardudycz/EventSourcing.NetCore
+https://youtu.be/whCk1Q87_ZI?si=-lqezqYf32z3CT9S

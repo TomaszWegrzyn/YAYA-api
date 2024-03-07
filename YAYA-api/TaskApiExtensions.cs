@@ -8,6 +8,7 @@ public static class TaskApiExtensions
                 "/CreateTask/",
                 async (CreateTaskCommand command, IEventStore<Task, TaskId> eventStore) =>
                 {
+                    // We need to provide this GUID when creating, because it must be the same when re-applying the events
                     await eventStore.Add(Task.Create(new TaskId(Guid.NewGuid()), DateTime.Now, command.TaskPriority, command.TaskStatusId, command.Name));
                 })
             .WithName("CreateTask")
@@ -55,7 +56,6 @@ public static class TaskApiExtensions
                 "/CreateTaskStatus/",
                 async (CreateTaskStatusCommand command, IEventStore<TaskStatus, TaskStatusId> taskStatusEventStore, IEventStore<TaskStatusNameLock, string> nameLockEventStore, CancellationToken cancellationToken) =>
                 {
-                    // here we can validate the command against the list of existing task status names
                     var nameLock = await nameLockEventStore.Find(command.Name, cancellationToken);
                     if (nameLock == null)
                     {
@@ -65,7 +65,7 @@ public static class TaskApiExtensions
 
                     if (nameLock.Locked)
                     {
-                        throw new InvalidOperationException("Task status name is locked");
+                        throw new InvalidOperationException("Task status name is already in use!");
                     }
 
                     nameLock.StartAcquire(DateTime.Now);

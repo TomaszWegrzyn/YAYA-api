@@ -1,4 +1,7 @@
-﻿namespace YAYA_api;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
+
+namespace YAYA_api;
 
 public class TaskId: StronglyTypedValue<Guid>
 {
@@ -6,7 +9,6 @@ public class TaskId: StronglyTypedValue<Guid>
     {
     }
 }
-
 
 public enum TaskPriority
 {
