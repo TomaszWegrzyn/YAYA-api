@@ -1,8 +1,9 @@
-1. DDD must be applied.
-- Aggregates must be designed correctly, because order of events is only preserved per aggregate.
+1. Think in events and streams, not in DB tables.
+	- Aggregates must be designed correctly (DDD), because order of events is only preserved per aggregate.
+	- Streams can't be deleted, only marked as deleted. Implementing "soft deletion" is preferable.
 2. Understanding of CQRS is required.
-- The read model is a separate model from the write model.
-- The read model is updated asynchronously, which means UI is eventually consistent. For UI devs optimistic UI patterns are required.
+	- The read model is a separate model from the write model.
+	- The read model is updated asynchronously, which means UI is eventually consistent. For UI devs optimistic UI patterns are required.
 3. We can't rely on relational DB features like constraints. We need to solve such problems differently:
 	- We can use a unique constraint in the read model(no usually the UI validation would block this). 
 	  This is NOT a guarantee that the write model will not have duplicates. 
@@ -13,6 +14,4 @@
 	- Alternatively we can use reservation pattern. 
 	  For example we can reserve a unique name for a short period of time and if the name is not used, we can use it. 
 	- Probably you actually DO NOT NEED unique constraints. 
-
 4. Event Store DB documentation is lacking.
-

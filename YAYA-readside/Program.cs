@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http.Json;
 using YAYA_api;
 using YAYA_readside;
 using MvcJsonOptions = Microsoft.AspNetCore.Mvc.JsonOptions;
+using Task = System.Threading.Tasks.Task;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,9 +56,13 @@ app.MapGet(
     .WithName("RecentTasks")
     .WithOpenApi();
 
-{
+await SubscribeToAllEvents(app);
 
-    var serviceScopeFactory = app.Services.GetRequiredService<IServiceScopeFactory>();
+app.Run();
+
+async Task SubscribeToAllEvents(WebApplication webApplication)
+{
+    var serviceScopeFactory = webApplication.Services.GetRequiredService<IServiceScopeFactory>();
     using var scope = serviceScopeFactory.CreateScope();
     var eventStoreClient = scope.ServiceProvider.GetRequiredService<EventStoreClient>();
     try
@@ -72,15 +77,9 @@ app.MapGet(
             cancellationToken: CancellationToken.None,
             filterOptions: new SubscriptionFilterOptions(EventTypeFilter.ExcludeSystemEvents())
         );
-
     }
     catch (Exception e)
     {
-        // Assume it's already there, possibly to some concurrency collision
-        Console.WriteLine(e);
+        Console.WriteLine("Could not subscribe", e);
     }
-
-
 }
-
-app.Run();

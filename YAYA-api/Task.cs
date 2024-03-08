@@ -1,7 +1,4 @@
-﻿using System.Text.Json;
-using System.Text.Json.Serialization;
-
-namespace YAYA_api;
+﻿namespace YAYA_api;
 
 public class TaskId: StronglyTypedValue<Guid>
 {
@@ -19,7 +16,24 @@ public enum TaskPriority
     Highest
 }
 
-public class Task : Aggregate<TaskId>
+public class TaskSnapshotData
+{
+    public TaskSnapshotData(TaskPriority taskPriority)
+    {
+        TaskPriority = taskPriority;
+    }
+
+    public TaskPriority TaskPriority { get; }
+}
+
+public class TaskSnapshot : AggregateSnapshot<TaskSnapshotData>
+{
+    public TaskSnapshot(ulong version, TaskSnapshotData data) : base(version, data)
+    {
+    }
+}
+
+public class Task : AggregateWithSnapshot<TaskId, TaskSnapshot>
 {
     private TaskPriority _taskPriority;
 
@@ -98,6 +112,11 @@ public class Task : Aggregate<TaskId>
             default:
                 throw new InvalidOperationException($"Event type {@event.GetType().Name} can't be handled");
         }
+    }
+
+    public override TaskSnapshot TakeSnapshot()
+    {
+        return new TaskSnapshot(Version, new TaskSnapshotData(_taskPriority));
     }
 
     private void Apply(TaskPriorityIncreasedEvent taskPriorityIncreased)

@@ -5,6 +5,7 @@ using YAYA_api;
 using Task = YAYA_api.Task;
 using TaskStatus = YAYA_api.TaskStatus;
 using MvcJsonOptions = Microsoft.AspNetCore.Mvc.JsonOptions;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,3 +56,32 @@ app.AddTaskStatusEndpoints();
 await app.EnsureDefaultTaskStatusExistsAsync();
 
 app.Run();
+
+async Task SubscribeToTaskEvents(WebApplication webApplication)
+{
+    var serviceScopeFactory = webApplication.Services.GetRequiredService<IServiceScopeFactory>();
+    using var scope = serviceScopeFactory.CreateScope();
+    var eventStoreClient = scope.ServiceProvider.GetRequiredService<EventStoreClient>();
+    try
+    {
+        await eventStoreClient.SubscribeToAllAsync(
+            FromAll.Start,
+            async (subscription, @event, cancellationToken) =>
+            {
+                var serviceScopeFactory = webApplication.Services.GetRequiredService<IServiceScopeFactory>();
+                using var scope = serviceScopeFactory.CreateScope();
+                var taskEventStore = scope.ServiceProvider.GetRequiredService<IEventStore<Task, TaskId>>();
+
+
+                Console.WriteLine(@event.Event.EventType);
+                Console.WriteLine(Encoding.UTF8.GetString(@event.Event.Data.Span));
+            },
+            cancellationToken: CancellationToken.None,
+            filterOptions: new SubscriptionFilterOptions(StreamFilter.Prefix("Task_"))
+        );
+    }
+    catch (Exception e)
+    {
+        Console.WriteLine("Could not subscribe", e);
+    }
+}
