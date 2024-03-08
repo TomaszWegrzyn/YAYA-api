@@ -14,5 +14,5 @@
 	- Subscription example(simple event log in console)
 	- Snapshots(Not implemented) !
 	- External system integration (Not implemented) !
-4. Discussion of event sourcing implications
+4. Summary/Discussion of event sourcing implications
 5. Q&A
