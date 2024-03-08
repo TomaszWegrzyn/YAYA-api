@@ -3,9 +3,11 @@
 3. Demo of the project
 	- Creating new task (show streams)
 	- Task Priority changes (show streams)
+	- Show example of bug and backwards compability - task priority bug.
+	- Show backwards compability of events
 	- Creating new task status (discuss name uniqueness and aggregate separation)
 	- Projections (showing recent tasks list)
-	- Subscription example
+	- Subscription example(simple event log in console)
 	- Snapshots(Not implemented)
 4. Discussion of event sourcing implications
 5. Q&A
