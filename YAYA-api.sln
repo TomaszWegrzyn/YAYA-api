@@ -13,6 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Notes", "Notes", "{F2DD2AC6
 	ProjectSection(SolutionItems) = preProject
 		Links.txt = Links.txt
 		Notes.txt = Notes.txt
+		PresentationPlan.txt = PresentationPlan.txt
 	EndProjectSection
 EndProject
 Global

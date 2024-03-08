@@ -1,0 +1,11 @@
+1. Event Store DB overview
+2. Project assumptions overview
+3. Demo of the project
+	- Creating new task (show streams)
+	- Task Priority changes (show streams)
+	- Creating new task status (discuss name uniqueness and aggregate separation)
+	- Projections (showing recent tasks list)
+	- Subscription example
+	- Snapshots(Not implemented)
+4. Discussion of event sourcing implications
+5. Q&A
