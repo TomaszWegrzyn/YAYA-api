@@ -10,11 +10,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YAYA-readside", "YAYA-readside\YAYA-readside.csproj", "{3BA44D80-C10E-44C1-9139-0F4E2FE6AED6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Notes", "Notes", "{F2DD2AC6-4233-424B-87BD-324A04CEACB1}"
-	ProjectSection(SolutionItems) = preProject
-		Links.txt = Links.txt
-		Notes.txt = Notes.txt
-		PresentationPlan.txt = PresentationPlan.txt
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

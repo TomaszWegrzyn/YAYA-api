@@ -1,5 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 using System.Text.Json;
+using Google.Protobuf.Collections;
 
 namespace YAYA_api;
 
@@ -54,10 +55,22 @@ public class StronglyTypedValueJsonConverter<T> : JsonConverter<T> where T :Stro
     public override T? Read(ref Utf8JsonReader reader, Type typeToConvert,
         JsonSerializerOptions options)
     {
-        var value = reader.GetString();
-        if (value is null)
-            return null;
-        return (T)Activator.CreateInstance(typeToConvert, value)!;
+
+        try
+        {
+            var stringValue = reader.GetString();
+            if (stringValue is null)
+                return null;
+            var value = Guid.Parse(stringValue);
+            return (T)Activator.CreateInstance(typeToConvert, value)!;
+        }
+        catch (Exception e)
+        {
+            /// if guid is not passed, try to parse it as a json object as fallback
+            var newOptions = new JsonSerializerOptions(options);
+            newOptions.Converters.Remove(this);
+            return JsonSerializer.Deserialize<T>(ref reader, newOptions);
+        }
     }
 
     public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)

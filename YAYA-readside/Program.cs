@@ -18,6 +18,7 @@ builder.Services.Configure<JsonOptions>(options =>
 {
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
     options.SerializerOptions.Converters.Add(new StronglyTypedValueJsonConverter<TaskId>());
+
     options.SerializerOptions.Converters.Add(new StronglyTypedValueJsonConverter<TaskStatusId>());
 });
 
